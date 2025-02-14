@@ -1,4 +1,3 @@
-from rest_framework import serializers  # Import serializers here
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,13 +7,14 @@ from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import serializers
 from rest_framework.parsers import JSONParser
 
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
-    date_of_birth = serializers.DateField(required=False)
+    date_of_birth = serializers.DateField(required=False) 
 
     class Meta:
         model = User
@@ -22,7 +22,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_email(self, value):
-        return serializers.EmailField().to_internal_value(value)
+        return serializers.EmailField().to_internal_value(value) 
 
     def validate(self, data):
         if data['password'] != data['password2']:
@@ -57,28 +57,36 @@ class LoginView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self) -> User:
+        return self.request.user
 
     def get(self, request):
-        user = request.user
+        user = self.get_object()
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
-        user = request.user
+        user = self.get_object()
         serializer = UserSerializer(user, data=request.data, partial=True)
 
-        print("Received data:", request.data)
-
         if serializer.is_valid():
-            print("Valid data:", serializer.validated_data)
             serializer.save()
-            return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
-        
-        print("Validation errors:", serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Profile updated successfully!", "data": serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            {"errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -92,4 +100,3 @@ class RegisterView(APIView):
                 'user': UserSerializer(user).data
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

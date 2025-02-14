@@ -26,17 +26,51 @@ SECRET_KEY = 'django-insecure-oinfnq16hwh5f#oehdkx#%n754isw=hv4uq#s5as(!829&=9o6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.93', '*']
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.93', '*']
 
-CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://picsmart.space",
+    "https://homeassistant.picsmart.space",
+    "http://localhost:8000",
+
+]
+
+CORS_ORIGIN_WHITELIST = [
+    "https://picsmart.space",
+    "https://homeassistant.picsmart.space",
+    "http://localhost:8000",
+
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://192.168.1.93:3000",
-    "http://172.16.0.136:3000",
-    "http://172.16.0.106:3000"
+    "http://127.0.0.1:3000",
+    "https://picsmart.space",
 ]
+
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
+
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+)
+
+
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 # Application definition
 
