@@ -61,32 +61,35 @@ class LoginView(APIView):
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]  # เพิ่ม JSONParser
 
-    # GET Request เพื่อดึงข้อมูลผู้ใช้ที่ล็อกอิน
+    def get_object(self) -> User:
+        """ดึงข้อมูลของผู้ใช้ที่ล็อกอิน"""
+        return self.request.user
+
     def get(self, request):
-        user = request.user
+        """ดึงข้อมูลโปรไฟล์ของผู้ใช้"""
+        user = self.get_object()
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # PUT Request เพื่ออัพเดตข้อมูลผู้ใช้
     def put(self, request):
-        print(request.data) 
-        user = request.user
+        """อัปเดตข้อมูลโปรไฟล์ของผู้ใช้"""
+        user = self.get_object()
         serializer = UserSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Profile updated successfully!", "data": serializer.data},
+                status=status.HTTP_200_OK
+            )
 
-class UserSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.ImageField(required=False, allow_null=True)
-    date_of_birth = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False)
+        return Response(
+            {"errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'phone_number', 'date_of_birth', 'address', 'profile_picture']
+
 
 class RegisterView(APIView):
     def post(self, request):
